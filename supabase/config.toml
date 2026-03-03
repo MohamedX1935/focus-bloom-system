@@ -1,1 +1,4 @@
 project_id = "ijwalghszzeuskdktsep"
+
+[functions.parse-screen-xls]
+verify_jwt = false

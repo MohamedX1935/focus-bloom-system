@@ -81,6 +81,106 @@ export interface Goal {
   progress: number; // 0-100
 }
 
+// ─── Training Program Types ───
+export interface ExerciseTemplate {
+  id: string;
+  name: string;
+  sets: number;
+  reps: number;
+  weight: number;
+  notes: string;
+  imageUrl?: string;
+  muscleGroup: MuscleGroup;
+}
+
+export type MuscleGroup =
+  | "poitrine"
+  | "dos"
+  | "epaules"
+  | "biceps"
+  | "triceps"
+  | "jambes"
+  | "abdos"
+  | "mollets"
+  | "avant-bras"
+  | "fessiers";
+
+export interface TrainingDay {
+  id: string;
+  label: string; // ex: "Push A"
+  dayOfWeek: number; // 0-6
+  exercises: ExerciseTemplate[];
+}
+
+export interface TrainingProgram {
+  id: string;
+  name: string;
+  days: TrainingDay[];
+  createdAt: string;
+  active: boolean;
+}
+
+export interface SessionSet {
+  setNumber: number;
+  reps: number;
+  weight: number;
+  done: boolean;
+}
+
+export interface SessionExercise {
+  exerciseId: string;
+  exerciseName: string;
+  muscleGroup: MuscleGroup;
+  sets: SessionSet[];
+  comment?: string;
+}
+
+export interface WorkoutSession {
+  id: string;
+  date: string;
+  programId: string;
+  dayId: string;
+  exercises: SessionExercise[];
+  completed: boolean;
+}
+
+// ─── Screen Classification Types ───
+export type AppCategory = "productivite" | "neutre" | "dopamine";
+
+export interface AppClassification {
+  appName: string;
+  category: AppCategory;
+  isManual: boolean; // user-corrected
+}
+
+export interface ScreenAppEntry {
+  appName: string;
+  minutes: number;
+  category: AppCategory;
+}
+
+export interface DayScreenData {
+  date: string;
+  apps: ScreenAppEntry[];
+  totalMinutes: number;
+  productifMinutes: number;
+  neutreMinutes: number;
+  dopamineMinutes: number;
+}
+
+export const MUSCLE_GROUPS: { value: MuscleGroup; label: string }[] = [
+  { value: "poitrine", label: "Poitrine" },
+  { value: "dos", label: "Dos" },
+  { value: "epaules", label: "Épaules" },
+  { value: "biceps", label: "Biceps" },
+  { value: "triceps", label: "Triceps" },
+  { value: "jambes", label: "Jambes" },
+  { value: "abdos", label: "Abdos" },
+  { value: "mollets", label: "Mollets" },
+  { value: "avant-bras", label: "Avant-bras" },
+  { value: "fessiers", label: "Fessiers" },
+];
+
 export interface ScoreWeights {
   priere: number;
   finances: number;
