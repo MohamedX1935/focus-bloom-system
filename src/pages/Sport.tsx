@@ -1,5 +1,6 @@
 import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
 import { DEFAULT_SETTINGS, type DayHabits, type AppSettings, type TrainingProgram, type WorkoutSession, type ExerciseTemplate, type TrainingDay, type SessionSet, type SessionExercise, type MuscleGroup, MUSCLE_GROUPS } from "@/types/app";
+import { SessionWorkout } from "@/components/sport/SessionWorkout";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Dumbbell, Calendar, Plus, Trash2, ChevronDown, ChevronUp, Edit2, Check, X, Upload, Image } from "lucide-react";
@@ -164,7 +165,12 @@ export default function Sport() {
                 <Button onClick={startSession}>Démarrer la séance</Button>
               </div>
             ) : (
-              <SessionLogger session={todaySession} onUpdate={updateSession} />
+              <SessionWorkout
+                session={todaySession}
+                exercises={todayTraining?.exercises || []}
+                onUpdate={updateSession}
+                onFinish={updateSession}
+              />
             )}
           </motion.div>
         </TabsContent>
@@ -245,91 +251,7 @@ export default function Sport() {
 
 // ─── SUB-COMPONENTS ───
 
-function SessionLogger({ session, onUpdate }: { session: WorkoutSession; onUpdate: (s: WorkoutSession) => void }) {
-  function toggleSet(exIdx: number, setIdx: number) {
-    const updated = { ...session, exercises: session.exercises.map((e, ei) =>
-      ei === exIdx ? { ...e, sets: e.sets.map((s, si) => si === setIdx ? { ...s, done: !s.done } : s) } : e
-    )};
-    onUpdate(updated);
-  }
-
-  function updateSetWeight(exIdx: number, setIdx: number, weight: number) {
-    const updated = { ...session, exercises: session.exercises.map((e, ei) =>
-      ei === exIdx ? { ...e, sets: e.sets.map((s, si) => si === setIdx ? { ...s, weight } : s) } : e
-    )};
-    onUpdate(updated);
-  }
-
-  function updateSetReps(exIdx: number, setIdx: number, reps: number) {
-    const updated = { ...session, exercises: session.exercises.map((e, ei) =>
-      ei === exIdx ? { ...e, sets: e.sets.map((s, si) => si === setIdx ? { ...s, reps } : s) } : e
-    )};
-    onUpdate(updated);
-  }
-
-  function updateComment(exIdx: number, comment: string) {
-    const updated = { ...session, exercises: session.exercises.map((e, ei) =>
-      ei === exIdx ? { ...e, comment } : e
-    )};
-    onUpdate(updated);
-  }
-
-  const totalSets = session.exercises.reduce((s, e) => s + e.sets.length, 0);
-  const doneSets = session.exercises.reduce((s, e) => s + e.sets.filter((st) => st.done).length, 0);
-
-  return (
-    <div className="space-y-4">
-      <div className="glass-card rounded-xl p-4">
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-foreground">Progression séance</span>
-          <span className="text-sm text-primary font-bold">{doneSets}/{totalSets}</span>
-        </div>
-        <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${totalSets > 0 ? (doneSets / totalSets) * 100 : 0}%` }} />
-        </div>
-      </div>
-
-      {session.exercises.map((ex, exIdx) => (
-        <div key={ex.exerciseId} className="glass-card rounded-xl p-4 space-y-3">
-          <h4 className="font-medium text-foreground text-sm">{ex.exerciseName}</h4>
-          <div className="space-y-2">
-            {ex.sets.map((set, setIdx) => (
-              <div key={setIdx} className="flex items-center gap-3">
-                <Checkbox
-                  checked={set.done}
-                  onCheckedChange={() => toggleSet(exIdx, setIdx)}
-                />
-                <span className="text-xs text-muted-foreground w-6">S{set.setNumber}</span>
-                <Input
-                  type="number"
-                  value={set.reps}
-                  onChange={(e) => updateSetReps(exIdx, setIdx, parseInt(e.target.value) || 0)}
-                  className="w-16 h-8 text-xs bg-muted border-border"
-                  placeholder="reps"
-                />
-                <span className="text-xs text-muted-foreground">×</span>
-                <Input
-                  type="number"
-                  value={set.weight}
-                  onChange={(e) => updateSetWeight(exIdx, setIdx, parseFloat(e.target.value) || 0)}
-                  className="w-20 h-8 text-xs bg-muted border-border"
-                  placeholder="kg"
-                />
-                <span className="text-xs text-muted-foreground">kg</span>
-              </div>
-            ))}
-          </div>
-          <Textarea
-            value={ex.comment || ""}
-            onChange={(e) => updateComment(exIdx, e.target.value)}
-            placeholder="Commentaire..."
-            className="h-16 text-xs bg-muted border-border"
-          />
-        </div>
-      ))}
-    </div>
-  );
-}
+// SessionLogger removed — replaced by SessionWorkout component
 
 function ProgramEditor({ program, onSave, onCancel }: {
   program: TrainingProgram;
