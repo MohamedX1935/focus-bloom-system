@@ -1,5 +1,6 @@
 import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
 import { DEFAULT_SETTINGS, type DayHabits, type AppSettings, type TrainingProgram, type WorkoutSession, type ExerciseTemplate, type TrainingDay, type SessionSet, type SessionExercise, type MuscleGroup, MUSCLE_GROUPS } from "@/types/app";
+import { SessionWorkout } from "@/components/sport/SessionWorkout";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Dumbbell, Calendar, Plus, Trash2, ChevronDown, ChevronUp, Edit2, Check, X, Upload, Image } from "lucide-react";
@@ -164,7 +165,12 @@ export default function Sport() {
                 <Button onClick={startSession}>Démarrer la séance</Button>
               </div>
             ) : (
-              <SessionLogger session={todaySession} onUpdate={updateSession} />
+              <SessionWorkout
+                session={todaySession}
+                exercises={todayTraining?.exercises || []}
+                onUpdate={updateSession}
+                onFinish={updateSession}
+              />
             )}
           </motion.div>
         </TabsContent>
