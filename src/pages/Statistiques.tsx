@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
-import { DEFAULT_SETTINGS, type DayHabits, type DayPrayers, type AppSettings, type SleepEntry, type ScreenEntry, type ProductivityEntry, type Expense, getLevel } from "@/types/app";
+import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
+import { type DayHabits, type DayPrayers, type AppSettings, type SleepEntry, type ScreenEntry, type ProductivityEntry, type Expense, getLevel } from "@/types/app";
 import { motion } from "framer-motion";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, AreaChart, Area } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
@@ -28,7 +28,7 @@ function computeDayGlobalScore(
   const prayerScore = prayers ? Math.round((prayers.prayers.filter(p => p.done).length / 5) * 100) : 0;
 
   let sleepScore = 0;
-  if (sleep) {
+  if (sleep && sleep.heureCoucher && sleep.heureReveil) {
     const [hC, mC] = sleep.heureCoucher.split(":").map(Number);
     const [hR, mR] = sleep.heureReveil.split(":").map(Number);
     let coucher = hC * 60 + mC;
@@ -77,13 +77,13 @@ function computeDayGlobalScore(
 }
 
 export default function Statistiques() {
-  const [settings] = useLocalStorage<AppSettings>("discipline-settings", DEFAULT_SETTINGS);
-  const [habitsData] = useLocalStorage<Record<string, DayHabits>>("discipline-habits", {});
-  const [prayersData] = useLocalStorage<Record<string, DayPrayers>>("discipline-prayers", {});
-  const [sleepData] = useLocalStorage<Record<string, SleepEntry>>("discipline-sleep", {});
-  const [screenData] = useLocalStorage<Record<string, ScreenEntry>>("discipline-screen", {});
-  const [productivityData] = useLocalStorage<Record<string, ProductivityEntry>>("discipline-productivity", {});
-  const [expenses] = useLocalStorage<Expense[]>("discipline-expenses", []);
+  const { settings } = useSettings();
+  const { habitsData } = useHabits();
+  const { prayersData } = usePrayers();
+  const { sleepData } = useSleep();
+  const { screenData } = useScreen();
+  const { productivityData } = useProductivity();
+  const { expenses } = useExpenses();
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
@@ -123,12 +123,7 @@ export default function Statistiques() {
   let bestStreak = 0;
   let current = 0;
   for (const d of days30) {
-    if (d.global >= 60) {
-      current++;
-      bestStreak = Math.max(bestStreak, current);
-    } else {
-      current = 0;
-    }
+    if (d.global >= 60) { current++; bestStreak = Math.max(bestStreak, current); } else { current = 0; }
   }
 
   return (
@@ -146,7 +141,6 @@ export default function Statistiques() {
         </div>
       </div>
 
-      {/* Score Calendar */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="glass-card rounded-xl p-5">
         <h3 className="text-sm font-medium text-muted-foreground mb-3">Calendrier des scores</h3>
         <div className="flex flex-col items-center">
@@ -179,12 +173,8 @@ export default function Statistiques() {
           </div>
           {selectedDate && selectedScore !== undefined && (
             <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="mt-3 text-center">
-              <span className="text-xs text-muted-foreground">
-                {selectedDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-              </span>
-              <div className={cn("text-2xl font-bold mt-1", selectedScore >= 75 ? "text-success" : selectedScore >= 60 ? "text-warning" : "text-destructive")}>
-                {selectedScore}
-              </div>
+              <span className="text-xs text-muted-foreground">{selectedDate.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}</span>
+              <div className={cn("text-2xl font-bold mt-1", selectedScore >= 75 ? "text-success" : selectedScore >= 60 ? "text-warning" : "text-destructive")}>{selectedScore}</div>
               <span className="text-[10px] text-muted-foreground">{getLevel(selectedScore)}</span>
             </motion.div>
           )}
