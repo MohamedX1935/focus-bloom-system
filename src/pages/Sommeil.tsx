@@ -1,17 +1,21 @@
-import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
-import { DEFAULT_SETTINGS, type SleepEntry, type AppSettings } from "@/types/app";
+import { useSleep, useSettings } from "@/hooks/useSupabaseData";
+import { type SleepEntry } from "@/types/app";
 import { ScoreRing } from "@/components/ScoreRing";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 
+function getTodayKey() {
+  return new Date().toISOString().split("T")[0];
+}
+
 export default function Sommeil() {
   const today = getTodayKey();
-  const [settings] = useLocalStorage<AppSettings>("discipline-settings", DEFAULT_SETTINGS);
-  const [data, setData] = useLocalStorage<Record<string, SleepEntry>>("discipline-sleep", {});
+  const { settings } = useSettings();
+  const { sleepData, upsertDay } = useSleep();
 
-  const entry: SleepEntry = data[today] || {
+  const entry: SleepEntry = sleepData[today] || {
     date: today,
     heureCoucher: "",
     heureReveil: "",
@@ -19,10 +23,10 @@ export default function Sommeil() {
   };
 
   const update = (partial: Partial<SleepEntry>) => {
-    setData((prev) => ({ ...prev, [today]: { ...entry, ...partial } }));
+    const updated = { ...entry, ...partial };
+    upsertDay(today, updated);
   };
 
-  // Calculate duration
   let duration = 0;
   if (entry.heureCoucher && entry.heureReveil) {
     const [hC, mC] = entry.heureCoucher.split(":").map(Number);
@@ -48,43 +52,23 @@ export default function Sommeil() {
         <h1 className="text-2xl font-bold text-foreground">Sommeil</h1>
         <p className="text-sm text-muted-foreground">Objectif : {min}-{max}h</p>
       </div>
-
       <div className="flex justify-center">
         <ScoreRing score={score} size={120} label={duration > 0 ? `${duration.toFixed(1)}h` : "—"} />
       </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-xl p-5 space-y-4"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-5 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Heure coucher</Label>
-            <Input
-              type="time"
-              value={entry.heureCoucher}
-              onChange={(e) => update({ heureCoucher: e.target.value })}
-              className="bg-muted border-border"
-            />
+            <Input type="time" value={entry.heureCoucher} onChange={(e) => update({ heureCoucher: e.target.value })} className="bg-muted border-border" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Heure réveil</Label>
-            <Input
-              type="time"
-              value={entry.heureReveil}
-              onChange={(e) => update({ heureReveil: e.target.value })}
-              className="bg-muted border-border"
-            />
+            <Input type="time" value={entry.heureReveil} onChange={(e) => update({ heureReveil: e.target.value })} className="bg-muted border-border" />
           </div>
         </div>
-
         <div className="flex items-center justify-between">
           <Label className="text-sm text-foreground">Réveil nocturne</Label>
-          <Switch
-            checked={entry.reveilNocturne}
-            onCheckedChange={(checked) => update({ reveilNocturne: checked })}
-          />
+          <Switch checked={entry.reveilNocturne} onCheckedChange={(checked) => update({ reveilNocturne: checked })} />
         </div>
       </motion.div>
     </div>

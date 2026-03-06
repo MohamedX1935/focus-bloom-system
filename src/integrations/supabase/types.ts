@@ -14,7 +14,323 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_classifications: {
+        Row: {
+          app_name: string
+          category: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          app_name: string
+          category: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          app_name?: string
+          category?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_habits: {
+        Row: {
+          created_at: string | null
+          date: string
+          habits: Json
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          habits?: Json
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          habits?: Json
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_prayers: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          prayers: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          id?: string
+          prayers?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          prayers?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_productivity: {
+        Row: {
+          created_at: string | null
+          date: string
+          deep_work_minutes: number
+          formation_minutes: number
+          id: string
+          tasks: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          deep_work_minutes?: number
+          formation_minutes?: number
+          id?: string
+          tasks?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          deep_work_minutes?: number
+          formation_minutes?: number
+          id?: string
+          tasks?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string | null
+          date: string
+          description: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string | null
+          date: string
+          description?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string | null
+          date?: string
+          description?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          created_at: string | null
+          id: string
+          progress: number
+          title: string
+          trimester: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          progress?: number
+          title: string
+          trimester?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          progress?: number
+          title?: string
+          trimester?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      screen_usage: {
+        Row: {
+          apps: Json
+          created_at: string | null
+          date: string
+          id: string
+          temps_dopamine: number
+          temps_neutre: number
+          temps_productif: number
+          temps_total: number
+          user_id: string
+        }
+        Insert: {
+          apps?: Json
+          created_at?: string | null
+          date: string
+          id?: string
+          temps_dopamine?: number
+          temps_neutre?: number
+          temps_productif?: number
+          temps_total?: number
+          user_id: string
+        }
+        Update: {
+          apps?: Json
+          created_at?: string | null
+          date?: string
+          id?: string
+          temps_dopamine?: number
+          temps_neutre?: number
+          temps_productif?: number
+          temps_total?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sleep_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          heure_coucher: string
+          heure_reveil: string
+          id: string
+          reveil_nocturne: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          heure_coucher?: string
+          heure_reveil?: string
+          id?: string
+          reveil_nocturne?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          heure_coucher?: string
+          heure_reveil?: string
+          id?: string
+          reveil_nocturne?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      training_programs: {
+        Row: {
+          active: boolean
+          created_at: string | null
+          days: Json
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string | null
+          days?: Json
+          id?: string
+          name?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string | null
+          days?: Json
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          settings: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          settings?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          settings?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workout_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string | null
+          date: string
+          day_id: string
+          exercises: Json
+          id: string
+          program_id: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string | null
+          date: string
+          day_id: string
+          exercises?: Json
+          id?: string
+          program_id?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string | null
+          date?: string
+          day_id?: string
+          exercises?: Json
+          id?: string
+          program_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

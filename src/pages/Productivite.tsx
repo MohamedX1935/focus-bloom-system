@@ -1,4 +1,4 @@
-import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
+import { useProductivity } from "@/hooks/useSupabaseData";
 import { type ProductivityEntry, type Task } from "@/types/app";
 import { ScoreRing } from "@/components/ScoreRing";
 import { motion } from "framer-motion";
@@ -8,12 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+function getTodayKey() {
+  return new Date().toISOString().split("T")[0];
+}
+
 export default function Productivite() {
   const today = getTodayKey();
-  const [data, setData] = useLocalStorage<Record<string, ProductivityEntry>>("discipline-productivity", {});
+  const { productivityData, upsertDay } = useProductivity();
   const [newTask, setNewTask] = useState("");
 
-  const entry: ProductivityEntry = data[today] || {
+  const entry: ProductivityEntry = productivityData[today] || {
     date: today,
     tasks: [],
     deepWorkMinutes: 0,
@@ -21,7 +25,8 @@ export default function Productivite() {
   };
 
   const updateEntry = (partial: Partial<ProductivityEntry>) => {
-    setData((prev) => ({ ...prev, [today]: { ...entry, ...partial } }));
+    const updated = { ...entry, ...partial };
+    upsertDay(today, updated);
   };
 
   const addTask = () => {
@@ -55,34 +60,15 @@ export default function Productivite() {
         <ScoreRing score={score} size={64} strokeWidth={5} />
       </div>
 
-      {/* Add task */}
       <div className="flex gap-2">
-        <Input
-          placeholder="Nouvelle tâche..."
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addTask()}
-          className="bg-muted border-border flex-1"
-        />
+        <Input placeholder="Nouvelle tâche..." value={newTask} onChange={(e) => setNewTask(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addTask()} className="bg-muted border-border flex-1" />
         <Button onClick={addTask} size="icon"><Plus className="h-4 w-4" /></Button>
       </div>
 
-      {/* Tasks */}
       <div className="space-y-2">
         {entry.tasks.map((task, i) => (
-          <motion.div
-            key={task.id}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.03 }}
-            className="glass-card rounded-lg p-3 flex items-center gap-3"
-          >
-            <button
-              onClick={() => toggleTask(task.id)}
-              className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
-                task.done ? "bg-primary" : "bg-muted border border-border"
-              }`}
-            >
+          <motion.div key={task.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="glass-card rounded-lg p-3 flex items-center gap-3">
+            <button onClick={() => toggleTask(task.id)} className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${task.done ? "bg-primary" : "bg-muted border border-border"}`}>
               {task.done && <Check className="h-3 w-3 text-primary-foreground" />}
             </button>
             <span className={`flex-1 text-sm ${task.done ? "text-muted-foreground line-through" : "text-foreground"}`}>{task.title}</span>
@@ -91,26 +77,15 @@ export default function Productivite() {
         ))}
       </div>
 
-      {/* Deep work & Formation */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="glass-card rounded-xl p-5 space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Deep work (min)</Label>
-            <Input
-              type="number"
-              value={entry.deepWorkMinutes || ""}
-              onChange={(e) => updateEntry({ deepWorkMinutes: parseInt(e.target.value) || 0 })}
-              className="bg-muted border-border"
-            />
+            <Input type="number" value={entry.deepWorkMinutes || ""} onChange={(e) => updateEntry({ deepWorkMinutes: parseInt(e.target.value) || 0 })} className="bg-muted border-border" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Formation (min)</Label>
-            <Input
-              type="number"
-              value={entry.formationMinutes || ""}
-              onChange={(e) => updateEntry({ formationMinutes: parseInt(e.target.value) || 0 })}
-              className="bg-muted border-border"
-            />
+            <Input type="number" value={entry.formationMinutes || ""} onChange={(e) => updateEntry({ formationMinutes: parseInt(e.target.value) || 0 })} className="bg-muted border-border" />
           </div>
         </div>
       </motion.div>

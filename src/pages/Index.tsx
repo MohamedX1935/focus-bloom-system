@@ -1,10 +1,9 @@
+import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
-import { useLocalStorage, getTodayKey } from "@/hooks/useLocalStorage";
 import {
   DEFAULT_HABITS,
   PRAYER_NAMES,
-  DEFAULT_SETTINGS,
   getLevel,
   type DayHabits,
   type DayPrayers,
@@ -15,27 +14,14 @@ import {
   type AppSettings,
 } from "@/types/app";
 import {
-  CheckSquare,
-  Moon,
-  Dumbbell,
-  Wallet,
-  BedDouble,
-  Smartphone,
-  Brain,
-  Flame,
-  TrendingUp,
+  CheckSquare, Moon, Dumbbell, Wallet, BedDouble, Smartphone, Brain, Flame, TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 
-const today = getTodayKey();
+function getTodayKey() {
+  return new Date().toISOString().split("T")[0];
+}
 
 function computeHabitScore(day: DayHabits | undefined): number {
   if (!day) return 0;
@@ -51,7 +37,7 @@ function computePrayerScore(day: DayPrayers | undefined): number {
 }
 
 function computeSleepScore(entry: SleepEntry | undefined, settings: AppSettings): number {
-  if (!entry) return 0;
+  if (!entry || !entry.heureCoucher || !entry.heureReveil) return 0;
   const [hC, mC] = entry.heureCoucher.split(":").map(Number);
   const [hR, mR] = entry.heureReveil.split(":").map(Number);
   let coucher = hC * 60 + mC;
@@ -83,8 +69,8 @@ function computeProductivityScore(entry: ProductivityEntry | undefined): number 
   return Math.round(taskScore + deepScore);
 }
 
-function computeFinanceScore(expenses: Expense[], settings: AppSettings): number {
-  const totalSpent = expenses.filter(e => e.date.startsWith(today.substring(0, 7))).reduce((s, e) => s + e.amount, 0);
+function computeFinanceScore(expenses: Expense[], settings: AppSettings, monthKey: string): number {
+  const totalSpent = expenses.filter(e => e.date.startsWith(monthKey)).reduce((s, e) => s + e.amount, 0);
   const budget = Object.values(settings.financeConfig.budgets).reduce((s, v) => s + v, 0);
   if (budget === 0) return 100;
   const ratio = totalSpent / budget;
@@ -92,38 +78,31 @@ function computeFinanceScore(expenses: Expense[], settings: AppSettings): number
 }
 
 export default function Dashboard() {
-  const [settings] = useLocalStorage<AppSettings>("discipline-settings", DEFAULT_SETTINGS);
-  const [habitsData] = useLocalStorage<Record<string, DayHabits>>("discipline-habits", {});
-  const [prayersData] = useLocalStorage<Record<string, DayPrayers>>("discipline-prayers", {});
-  const [sleepData] = useLocalStorage<Record<string, SleepEntry>>("discipline-sleep", {});
-  const [screenData] = useLocalStorage<Record<string, ScreenEntry>>("discipline-screen", {});
-  const [productivityData] = useLocalStorage<Record<string, ProductivityEntry>>("discipline-productivity", {});
-  const [expenses] = useLocalStorage<Expense[]>("discipline-expenses", []);
+  const today = getTodayKey();
+  const { settings } = useSettings();
+  const { habitsData } = useHabits();
+  const { prayersData } = usePrayers();
+  const { sleepData } = useSleep();
+  const { screenData } = useScreen();
+  const { productivityData } = useProductivity();
+  const { expenses } = useExpenses();
 
   const habitScore = computeHabitScore(habitsData[today]);
   const prayerScore = computePrayerScore(prayersData[today]);
   const sleepScore = computeSleepScore(sleepData[today], settings);
   const screenScore = computeScreenScore(screenData[today], settings);
   const prodScore = computeProductivityScore(productivityData[today]);
-  const financeScore = computeFinanceScore(expenses, settings);
+  const financeScore = computeFinanceScore(expenses, settings, today.substring(0, 7));
   const sportScore = habitsData[today]?.habits.find((h) => h.id === "musculation")?.done ? 100 : 0;
 
   const w = settings.weights;
   const totalW = w.priere + w.finances + w.habitudes + w.sport + w.productivite + w.sommeil + w.ecran;
   const globalScore = Math.round(
-    (prayerScore * w.priere +
-      financeScore * w.finances +
-      habitScore * w.habitudes +
-      sportScore * w.sport +
-      prodScore * w.productivite +
-      sleepScore * w.sommeil +
-      screenScore * w.ecran) /
-      totalW
+    (prayerScore * w.priere + financeScore * w.finances + habitScore * w.habitudes + sportScore * w.sport + prodScore * w.productivite + sleepScore * w.sommeil + screenScore * w.ecran) / totalW
   );
 
   const level = getLevel(globalScore);
 
-  // Calculate streaks
   const computeStreak = (data: Record<string, any>, checkFn: (entry: any) => boolean) => {
     let streak = 0;
     const d = new Date();
@@ -144,13 +123,11 @@ export default function Dashboard() {
     e.prayers.filter((p) => p.done).length === 5
   );
 
-  // Remaining money
   const monthExpenses = expenses
     .filter((e) => e.date.startsWith(today.substring(0, 7)))
     .reduce((s, e) => s + e.amount, 0);
   const argentRestant = settings.financeConfig.revenuReel - monthExpenses;
 
-  // Weekly chart data (last 7 days)
   const weekData = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
@@ -175,11 +152,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
@@ -188,25 +161,14 @@ export default function Dashboard() {
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent border border-border/50">
           <span className="text-xs font-medium text-muted-foreground">Niveau</span>
-          <span className={`text-sm font-bold ${
-            level === "Elite" ? "text-success" :
-            level === "Discipliné" ? "text-secondary" :
-            level === "Stable" ? "text-warning" : "text-destructive"
-          }`}>{level}</span>
+          <span className={`text-sm font-bold ${level === "Elite" ? "text-success" : level === "Discipliné" ? "text-secondary" : level === "Stable" ? "text-warning" : "text-destructive"}`}>{level}</span>
         </div>
       </motion.div>
 
-      {/* Global Score + Streaks */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="glass-card rounded-xl p-6 flex flex-col items-center justify-center md:col-span-1"
-        >
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="glass-card rounded-xl p-6 flex flex-col items-center justify-center md:col-span-1">
           <ScoreRing score={globalScore} size={140} label="Score Global" />
         </motion.div>
-
         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <ModuleCard title="Streak" value={`${streakGlobal}j`} icon={<Flame className="h-4 w-4" />} delay={0.1} />
           <ModuleCard title="Streak Prière" value={`${streakPriere}j`} icon={<Moon className="h-4 w-4" />} delay={0.15} />
@@ -215,16 +177,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Module Scores */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {modules.map((m, i) => (
-          <motion.div
-            key={m.title}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + i * 0.05 }}
-            className="glass-card rounded-xl p-4 flex items-center gap-3"
-          >
+          <motion.div key={m.title} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.05 }} className="glass-card rounded-xl p-4 flex items-center gap-3">
             <ScoreRing score={m.score} size={48} strokeWidth={4} />
             <div>
               <div className="text-xs text-muted-foreground">{m.title}</div>
@@ -234,13 +189,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Weekly Chart */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="glass-card rounded-xl p-5"
-      >
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card rounded-xl p-5">
         <h3 className="text-sm font-medium text-muted-foreground mb-4">Tendance Semaine</h3>
         <ResponsiveContainer width="100%" height={180}>
           <AreaChart data={weekData}>
@@ -252,15 +201,7 @@ export default function Dashboard() {
             </defs>
             <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(220 10% 55%)" }} />
             <YAxis domain={[0, 100]} hide />
-            <Tooltip
-              contentStyle={{
-                background: "hsl(220 15% 10%)",
-                border: "1px solid hsl(220 15% 16%)",
-                borderRadius: "8px",
-                fontSize: 12,
-                color: "hsl(220 10% 92%)",
-              }}
-            />
+            <Tooltip contentStyle={{ background: "hsl(220 15% 10%)", border: "1px solid hsl(220 15% 16%)", borderRadius: "8px", fontSize: 12, color: "hsl(220 10% 92%)" }} />
             <Area type="monotone" dataKey="score" stroke="hsl(152 60% 42%)" fill="url(#scoreGrad)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
