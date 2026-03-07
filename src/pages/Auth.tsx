@@ -3,19 +3,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 export default function Auth() {
-  const [status, setStatus] = useState("Connexion en cours...");
+  const [status, setStatus] = useState("Création du compte...");
 
   useEffect(() => {
-    const autoLogin = async () => {
+    const autoSetup = async () => {
+      // Try sign up first
+      const { error: signUpError } = await supabase.auth.signUp({
+        email: "mohammedelalaoui532@gmail.com",
+        password: "Imane@2004",
+      });
+      
+      if (signUpError) {
+        // If already exists, just sign in
+        setStatus("Connexion en cours...");
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: "mohammedelalaoui532@gmail.com",
-        password: "123",
+        password: "Imane@2004",
       });
       if (error) {
-        setStatus("Erreur de connexion : " + error.message);
+        setStatus("Erreur : " + error.message);
       }
     };
-    autoLogin();
+    autoSetup();
   }, []);
 
   return (
