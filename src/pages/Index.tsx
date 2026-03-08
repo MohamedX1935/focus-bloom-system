@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
+import { WeeklyReport } from "@/components/WeeklyReport";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
@@ -226,6 +227,21 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
       </div>
+
+      <WeeklyReport
+        habitsData={habitsData}
+        prayersData={prayersData}
+        sleepData={sleepData}
+        screenData={screenData}
+        productivityData={productivityData}
+        expenses={expenses}
+        settings={settings}
+        computeHabitScore={computeHabitScore}
+        computePrayerScore={computePrayerScore}
+        computeSleepScore={computeSleepScore}
+        computeScreenScore={computeScreenScore}
+        computeProductivityScore={computeProductivityScore}
+      />
     </div>
   );
 }
