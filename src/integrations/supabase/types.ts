@@ -38,6 +38,30 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_calories: {
+        Row: {
+          created_at: string | null
+          date: string
+          entries: Json
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          entries?: Json
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          entries?: Json
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_habits: {
         Row: {
           created_at: string | null
