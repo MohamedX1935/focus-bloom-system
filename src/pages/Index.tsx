@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
+import { WeeklyReport } from "@/components/WeeklyReport";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
