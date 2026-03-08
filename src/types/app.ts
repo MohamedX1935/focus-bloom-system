@@ -203,6 +203,8 @@ export interface AppSettings {
   defaultDayTypes: Record<number, DayType>;
   /** Override day type for specific dates (YYYY-MM-DD -> type) */
   dayTypeOverrides: Record<string, DayType>;
+  /** Objectif calorique journalier (kcal) */
+  objectifCalories: number;
 }
 
 export type Level = "Elite" | "Discipliné" | "Stable" | "Faible";
