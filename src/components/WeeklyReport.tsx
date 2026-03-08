@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import {
-  Trophy, TrendingDown, Smartphone, Dumbbell, Wallet, BarChart3, Calendar,
+  Trophy, TrendingDown, Smartphone, Dumbbell, Wallet, BarChart3, Calendar, Utensils, TrendingUp, ArrowDown,
 } from "lucide-react";
 import type {
   DayHabits, DayPrayers, SleepEntry, ScreenEntry, ProductivityEntry, Expense, AppSettings,
 } from "@/types/app";
-import { useWorkoutSessions } from "@/hooks/useSupabaseData";
+import { useWorkoutSessions, useCalories } from "@/hooks/useSupabaseData";
 
 interface WeeklyReportProps {
   habitsData: Record<string, DayHabits>;
@@ -24,7 +24,7 @@ interface WeeklyReportProps {
 
 function getWeekDates(): string[] {
   const today = new Date();
-  const dayOfWeek = today.getDay(); // 0=dim
+  const dayOfWeek = today.getDay();
   const monday = new Date(today);
   monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
   return Array.from({ length: 7 }, (_, i) => {
@@ -39,6 +39,7 @@ export function WeeklyReport({
   computeHabitScore, computePrayerScore, computeSleepScore, computeScreenScore, computeProductivityScore,
 }: WeeklyReportProps) {
   const { sessions } = useWorkoutSessions();
+  const { caloriesData } = useCalories();
   const weekDates = getWeekDates();
   const weekStart = weekDates[0];
   const weekEnd = weekDates[6];
@@ -64,7 +65,7 @@ export function WeeklyReport({
     ? Math.round(filledDays.reduce((s, d) => s + d.global, 0) / filledDays.length)
     : 0;
 
-  // Best & weakest habit (aggregate across week)
+  // Best & weakest habit
   const habitMap: Record<string, { done: number; total: number; label: string }> = {};
   weekDates.forEach((date) => {
     const day = habitsData[date];
@@ -96,7 +97,27 @@ export function WeeklyReport({
   const weekExpenses = expenses.filter((e) => e.date >= weekStart && e.date <= weekEnd);
   const totalSpent = weekExpenses.reduce((s, e) => s + e.amount, 0);
 
+  // Calories this week
+  const weekCalories = weekDates.map((date) => {
+    const entries = caloriesData[date] || [];
+    return { date, total: entries.reduce((s: number, e: any) => s + (e.calories || 0), 0) };
+  });
+  const daysWithCalories = weekCalories.filter((d) => d.total > 0);
+  const totalCaloriesWeek = weekCalories.reduce((s, d) => s + d.total, 0);
+  const avgCalories = daysWithCalories.length > 0
+    ? Math.round(totalCaloriesWeek / daysWithCalories.length)
+    : 0;
+  const highestCalDay = daysWithCalories.length > 0
+    ? daysWithCalories.reduce((a, b) => (a.total > b.total ? a : b))
+    : null;
+  const lowestCalDay = daysWithCalories.length > 0
+    ? daysWithCalories.reduce((a, b) => (a.total < b.total ? a : b))
+    : null;
+
   const isSunday = new Date().getDay() === 0;
+
+  const formatDayShort = (date: string) =>
+    new Date(date).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" });
 
   const statItems = [
     {
@@ -136,6 +157,24 @@ export function WeeklyReport({
       sub: weekExpenses.length > 0
         ? `${weekExpenses.length} transactions`
         : "Aucune dépense",
+    },
+    {
+      icon: <Utensils className="h-4 w-4 text-primary" />,
+      label: "Moyenne calorique",
+      value: avgCalories > 0 ? `${avgCalories} kcal` : "—",
+      sub: avgCalories > 0 ? `${totalCaloriesWeek.toLocaleString()} kcal total` : "Aucune donnée",
+    },
+    {
+      icon: <TrendingUp className="h-4 w-4 text-warning" />,
+      label: "Jour + élevé (cal)",
+      value: highestCalDay ? `${highestCalDay.total} kcal` : "—",
+      sub: highestCalDay ? formatDayShort(highestCalDay.date) : "",
+    },
+    {
+      icon: <ArrowDown className="h-4 w-4 text-secondary" />,
+      label: "Jour + faible (cal)",
+      value: lowestCalDay ? `${lowestCalDay.total} kcal` : "—",
+      sub: lowestCalDay ? formatDayShort(lowestCalDay.date) : "",
     },
   ];
 

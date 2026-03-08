@@ -156,6 +156,10 @@ export default function Parametres() {
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Autres</h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Objectif calorique (kcal/jour)</Label>
+            <Input type="number" value={settings.objectifCalories || 2800} onChange={(e) => updateSettings({ ...settings, objectifCalories: parseInt(e.target.value) || 2800 })} className="bg-muted border-border" />
+          </div>
+          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Limite écran (min)</Label>
             <Input type="number" value={settings.limiteEcran} onChange={(e) => updateSettings({ ...settings, limiteEcran: parseInt(e.target.value) || 0 })} className="bg-muted border-border" />
           </div>

@@ -1,6 +1,7 @@
 import { useHabits, useSettings, useTrainingPrograms, useWorkoutSessions } from "@/hooks/useSupabaseData";
 import { DEFAULT_HABITS, type DayHabits, type AppSettings, type TrainingProgram, type WorkoutSession, type ExerciseTemplate, type TrainingDay, type MuscleGroup, MUSCLE_GROUPS } from "@/types/app";
 import { SessionWorkout } from "@/components/sport/SessionWorkout";
+import { CalorieTracker } from "@/components/sport/CalorieTracker";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Dumbbell, Calendar, Plus, Trash2, ChevronDown, ChevronUp, Edit2, Check, X, Image } from "lucide-react";
@@ -126,8 +127,9 @@ export default function Sport() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="aujourdhui">Séance</TabsTrigger>
+          <TabsTrigger value="calories">Calories</TabsTrigger>
           <TabsTrigger value="programme">Programme</TabsTrigger>
           <TabsTrigger value="historique">Historique</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
@@ -154,6 +156,10 @@ export default function Sport() {
               />
             )}
           </motion.div>
+        </TabsContent>
+
+        <TabsContent value="calories">
+          <CalorieTracker />
         </TabsContent>
 
         <TabsContent value="programme">
