@@ -456,6 +456,41 @@ export function useSettings() {
   return { settings, isLoading, updateSettings };
 }
 
+// ─── CALORIES ───
+export function useCalories() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const queryKey = ["daily_calories"];
+
+  useRealtimeInvalidation("daily_calories", queryKey);
+
+  const { data: caloriesData = {}, isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!user) return {};
+      const { data, error } = await supabase.from("daily_calories").select("*").eq("user_id", user.id);
+      if (error) throw error;
+      const map: Record<string, any[]> = {};
+      for (const row of data || []) {
+        map[row.date] = row.entries as any[];
+      }
+      return map;
+    },
+    enabled: !!user,
+  });
+
+  const upsertDay = useCallback(async (date: string, entries: any[]) => {
+    if (!user) return;
+    await supabase.from("daily_calories").upsert(
+      { user_id: user.id, date, entries: entries as any },
+      { onConflict: "user_id,date" }
+    );
+    queryClient.invalidateQueries({ queryKey });
+  }, [user, queryClient]);
+
+  return { caloriesData, isLoading, upsertDay };
+}
+
 // ─── APP CLASSIFICATIONS ───
 export function useAppClassifications() {
   const { user } = useAuth();

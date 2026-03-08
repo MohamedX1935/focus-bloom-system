@@ -333,4 +333,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
     6: "repos",   // Samedi
   },
   dayTypeOverrides: {},
+  objectifCalories: 2800,
 };
