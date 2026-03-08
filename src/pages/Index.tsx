@@ -17,7 +17,7 @@ import {
   CheckSquare, Moon, Dumbbell, Wallet, BedDouble, Smartphone, Brain, Flame, TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
