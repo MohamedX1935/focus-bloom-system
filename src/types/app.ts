@@ -181,6 +181,8 @@ export const MUSCLE_GROUPS: { value: MuscleGroup; label: string }[] = [
   { value: "fessiers", label: "Fessiers" },
 ];
 
+export type DayType = "travail" | "repos";
+
 export interface ScoreWeights {
   priere: number;
   finances: number;
@@ -197,6 +199,10 @@ export interface AppSettings {
   limiteEcran: number; // minutes
   joursSport: number[]; // 0=dim, 1=lun...
   heuresSommeilOptimales: [number, number]; // [min, max]
+  /** Default day type per weekday (0=dim..6=sam) */
+  defaultDayTypes: Record<number, DayType>;
+  /** Override day type for specific dates (YYYY-MM-DD -> type) */
+  dayTypeOverrides: Record<string, DayType>;
 }
 
 export type Level = "Elite" | "Discipliné" | "Stable" | "Faible";
