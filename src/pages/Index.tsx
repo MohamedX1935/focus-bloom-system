@@ -227,6 +227,21 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
       </div>
+
+      <WeeklyReport
+        habitsData={habitsData}
+        prayersData={prayersData}
+        sleepData={sleepData}
+        screenData={screenData}
+        productivityData={productivityData}
+        expenses={expenses}
+        settings={settings}
+        computeHabitScore={computeHabitScore}
+        computePrayerScore={computePrayerScore}
+        computeSleepScore={computeSleepScore}
+        computeScreenScore={computeScreenScore}
+        computeProductivityScore={computeProductivityScore}
+      />
     </div>
   );
 }
