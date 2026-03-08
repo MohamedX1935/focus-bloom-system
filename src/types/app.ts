@@ -321,4 +321,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   limiteEcran: 420,
   joursSport: [1, 2, 4, 5], // lun, mar, jeu, ven
   heuresSommeilOptimales: [7, 8],
+  defaultDayTypes: {
+    0: "repos",   // Dimanche
+    1: "travail", // Lundi
+    2: "travail", // Mardi
+    3: "travail", // Mercredi
+    4: "travail", // Jeudi
+    5: "travail", // Vendredi
+    6: "repos",   // Samedi
+  },
+  dayTypeOverrides: {},
 };
