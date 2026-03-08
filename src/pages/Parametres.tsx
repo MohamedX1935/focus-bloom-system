@@ -1,12 +1,15 @@
 import { useSettings } from "@/hooks/useSupabaseData";
-import { EXPENSE_CATEGORIES, type AppSettings } from "@/types/app";
+import { EXPENSE_CATEGORIES, type AppSettings, type DayType } from "@/types/app";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Briefcase, Coffee } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const JOURS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 export default function Parametres() {
   const { settings, updateSettings } = useSettings();
@@ -22,6 +25,21 @@ export default function Parametres() {
 
   const updateBudget = (category: string, value: number) => {
     updateSettings({ ...settings, financeConfig: { ...settings.financeConfig, budgets: { ...settings.financeConfig.budgets, [category]: value } } });
+  };
+
+  const toggleSportDay = (day: number) => {
+    const current = settings.joursSport || [];
+    const next = current.includes(day) ? current.filter((d) => d !== day) : [...current, day].sort();
+    updateSettings({ ...settings, joursSport: next });
+  };
+
+  const toggleDefaultDayType = (dayOfWeek: number) => {
+    const current: DayType = settings.defaultDayTypes?.[dayOfWeek] ?? (dayOfWeek === 0 || dayOfWeek === 6 ? "repos" : "travail");
+    const next: DayType = current === "travail" ? "repos" : "travail";
+    updateSettings({
+      ...settings,
+      defaultDayTypes: { ...settings.defaultDayTypes, [dayOfWeek]: next },
+    });
   };
 
   const totalWeight = Object.values(settings.weights).reduce((s, v) => s + v, 0);
@@ -41,7 +59,57 @@ export default function Parametres() {
         </div>
       )}
 
+      {/* Types de journée par défaut */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Type de journée par défaut</h3>
+        <p className="text-xs text-muted-foreground">Cliquez pour basculer Travail ↔ Repos</p>
+        <div className="grid grid-cols-7 gap-2">
+          {JOURS.map((label, i) => {
+            const type: DayType = settings.defaultDayTypes?.[i] ?? (i === 0 || i === 6 ? "repos" : "travail");
+            return (
+              <button
+                key={i}
+                onClick={() => toggleDefaultDayType(i)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
+                  type === "travail" ? "border-primary/40 bg-primary/10" : "border-accent/40 bg-accent/10"
+                }`}
+              >
+                <span className="text-xs font-medium text-foreground">{label}</span>
+                {type === "travail" ? (
+                  <Briefcase className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <Coffee className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Jours d'entraînement */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="glass-card rounded-xl p-5 space-y-4">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Jours d'entraînement</h3>
+        <p className="text-xs text-muted-foreground">L'habitude Musculation n'apparaît que ces jours</p>
+        <div className="grid grid-cols-7 gap-2">
+          {JOURS.map((label, i) => {
+            const active = (settings.joursSport || [1, 2, 4, 5]).includes(i);
+            return (
+              <button
+                key={i}
+                onClick={() => toggleSportDay(i)}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
+                  active ? "border-primary/40 bg-primary/10" : "border-border bg-muted/30"
+                }`}
+              >
+                <span className="text-xs font-medium text-foreground">{label}</span>
+                <Checkbox checked={active} className="pointer-events-none" />
+              </button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Pondérations</h3>
           <span className="text-xs text-muted-foreground">Total : {totalWeight}%</span>
@@ -56,7 +124,7 @@ export default function Parametres() {
         </div>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="glass-card rounded-xl p-5 space-y-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="glass-card rounded-xl p-5 space-y-4">
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Finances</h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
