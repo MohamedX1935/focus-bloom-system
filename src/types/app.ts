@@ -181,6 +181,8 @@ export const MUSCLE_GROUPS: { value: MuscleGroup; label: string }[] = [
   { value: "fessiers", label: "Fessiers" },
 ];
 
+export type DayType = "travail" | "repos";
+
 export interface ScoreWeights {
   priere: number;
   finances: number;
@@ -197,6 +199,10 @@ export interface AppSettings {
   limiteEcran: number; // minutes
   joursSport: number[]; // 0=dim, 1=lun...
   heuresSommeilOptimales: [number, number]; // [min, max]
+  /** Default day type per weekday (0=dim..6=sam) */
+  defaultDayTypes: Record<number, DayType>;
+  /** Override day type for specific dates (YYYY-MM-DD -> type) */
+  dayTypeOverrides: Record<string, DayType>;
 }
 
 export type Level = "Elite" | "Discipliné" | "Stable" | "Faible";
@@ -208,7 +214,8 @@ export function getLevel(score: number): Level {
   return "Faible";
 }
 
-export const DEFAULT_HABITS: Omit<HabitEntry, "done">[] = [
+/** Habitudes pour les jours de TRAVAIL (musculation gérée dynamiquement) */
+export const WORK_HABITS: Omit<HabitEntry, "done">[] = [
   { id: "no-screen-lunch", label: "Pas écran déjeuner", weight: 1 },
   { id: "no-screen-transport", label: "Pas écran transport", weight: 1 },
   { id: "first-hour-focus", label: "Première heure concentration", weight: 1.5 },
@@ -218,13 +225,60 @@ export const DEFAULT_HABITS: Omit<HabitEntry, "done">[] = [
   { id: "walk-20", label: "20 minutes marche", weight: 1 },
   { id: "podcast", label: "Podcast", weight: 0.5 },
   { id: "article", label: "Lire article", weight: 0.5 },
-  { id: "musculation", label: "Musculation", weight: 1.5 },
   { id: "calories", label: "Calories respectées", weight: 1 },
   { id: "no-phone-excess", label: "Pas téléphone excessif", weight: 1 },
   { id: "no-late-sleep", label: "Pas dormir tard", weight: 1 },
   { id: "no-lie", label: "Pas mentir", weight: 0.5 },
   { id: "no-screen-before-sleep", label: "Pas écran 45 min avant sommeil", weight: 1 },
 ];
+
+/** Habitude musculation ajoutée dynamiquement */
+export const MUSCULATION_HABIT: Omit<HabitEntry, "done"> = {
+  id: "musculation", label: "Musculation", weight: 1.5,
+};
+
+/** Habitudes pour les jours de REPOS */
+export const REST_HABITS: Omit<HabitEntry, "done">[] = [
+  { id: "wake-before-9", label: "Se réveiller avant 9h", weight: 1.5 },
+  { id: "no-phone-bed", label: "Pas de téléphone au lit", weight: 1 },
+  { id: "breakfast-no-screen", label: "Petit-déjeuner riche (sans écrans)", weight: 1 },
+  { id: "deep-work-1h", label: "1h travail profond (projets perso)", weight: 1.5 },
+  { id: "review-lessons", label: "Révision des leçons", weight: 1 },
+  { id: "change-env", label: "Changer d'environnement (sortie)", weight: 1 },
+  { id: "limit-social-45", label: "Limiter réseaux sociaux à 45 min", weight: 1 },
+  { id: "meal-prep", label: "Préparer les repas de la semaine", weight: 0.5 },
+  { id: "no-screen-before-sleep", label: "Pas d'écran 45 min avant coucher", weight: 1 },
+  { id: "games-after-16", label: "Jeux et divertissements après 16h", weight: 0.5 },
+];
+
+/** Backward compat alias */
+export const DEFAULT_HABITS = WORK_HABITS;
+
+/** Get the day type for a given date based on settings */
+export function getDayType(date: string, settings: AppSettings): DayType {
+  // Check overrides first
+  if (settings.dayTypeOverrides?.[date]) return settings.dayTypeOverrides[date];
+  // Then check default per weekday
+  const dayOfWeek = new Date(date + "T12:00:00").getDay(); // 0=dim
+  return settings.defaultDayTypes?.[dayOfWeek] ?? (dayOfWeek === 0 || dayOfWeek === 6 ? "repos" : "travail");
+}
+
+/** Get habits for a specific date based on day type and musculation schedule */
+export function getHabitsForDate(date: string, settings: AppSettings): Omit<HabitEntry, "done">[] {
+  const dayType = getDayType(date, settings);
+  if (dayType === "repos") return REST_HABITS;
+  // Travail: add musculation if it's a training day
+  const dayOfWeek = new Date(date + "T12:00:00").getDay();
+  const joursSport = settings.joursSport ?? [1, 2, 4, 5];
+  const habits = [...WORK_HABITS];
+  if (joursSport.includes(dayOfWeek)) {
+    // Insert musculation after "article" (index 8) or at end
+    const insertIdx = habits.findIndex(h => h.id === "calories");
+    if (insertIdx >= 0) habits.splice(insertIdx, 0, MUSCULATION_HABIT);
+    else habits.push(MUSCULATION_HABIT);
+  }
+  return habits;
+}
 
 export const PRAYER_NAMES = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"] as const;
 
@@ -267,4 +321,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   limiteEcran: 420,
   joursSport: [1, 2, 4, 5], // lun, mar, jeu, ven
   heuresSommeilOptimales: [7, 8],
+  defaultDayTypes: {
+    0: "repos",   // Dimanche
+    1: "travail", // Lundi
+    2: "travail", // Mardi
+    3: "travail", // Mercredi
+    4: "travail", // Jeudi
+    5: "travail", // Vendredi
+    6: "repos",   // Samedi
+  },
+  dayTypeOverrides: {},
 };
