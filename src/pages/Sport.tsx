@@ -1,6 +1,7 @@
 import { useHabits, useSettings, useTrainingPrograms, useWorkoutSessions } from "@/hooks/useSupabaseData";
 import { DEFAULT_HABITS, type DayHabits, type AppSettings, type TrainingProgram, type WorkoutSession, type ExerciseTemplate, type TrainingDay, type MuscleGroup, MUSCLE_GROUPS } from "@/types/app";
 import { SessionWorkout } from "@/components/sport/SessionWorkout";
+import { CalorieTracker } from "@/components/sport/CalorieTracker";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import { Dumbbell, Calendar, Plus, Trash2, ChevronDown, ChevronUp, Edit2, Check, X, Image } from "lucide-react";
