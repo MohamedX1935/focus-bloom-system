@@ -127,8 +127,9 @@ export default function Sport() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="aujourdhui">Séance</TabsTrigger>
+          <TabsTrigger value="calories">Calories</TabsTrigger>
           <TabsTrigger value="programme">Programme</TabsTrigger>
           <TabsTrigger value="historique">Historique</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
