@@ -17,7 +17,7 @@ import {
   CheckSquare, Moon, Dumbbell, Wallet, BedDouble, Smartphone, Brain, Flame, TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar } from "recharts";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
@@ -189,23 +189,43 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card rounded-xl p-5">
-        <h3 className="text-sm font-medium text-muted-foreground mb-4">Tendance Semaine</h3>
-        <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={weekData}>
-            <defs>
-              <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(152 60% 42%)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(152 60% 42%)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(220 10% 55%)" }} />
-            <YAxis domain={[0, 100]} hide />
-            <Tooltip contentStyle={{ background: "hsl(220 15% 10%)", border: "1px solid hsl(220 15% 16%)", borderRadius: "8px", fontSize: 12, color: "hsl(220 10% 92%)" }} />
-            <Area type="monotone" dataKey="score" stroke="hsl(152 60% 42%)" fill="url(#scoreGrad)" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card rounded-xl p-5">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Équilibre de vie</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <RadarChart data={[
+              { subject: "Prière", score: prayerScore },
+              { subject: "Sport", score: sportScore },
+              { subject: "Productivité", score: prodScore },
+              { subject: "Sommeil", score: sleepScore },
+              { subject: "Habitudes", score: habitScore },
+              { subject: "Écran", score: screenScore },
+            ]}>
+              <PolarGrid stroke="hsl(220 15% 20%)" />
+              <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "hsl(220 10% 55%)" }} />
+              <Radar name="Score" dataKey="score" stroke="hsl(152 60% 42%)" fill="hsl(152 60% 42%)" fillOpacity={0.2} strokeWidth={2} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="glass-card rounded-xl p-5">
+          <h3 className="text-sm font-medium text-muted-foreground mb-4">Tendance Semaine</h3>
+          <ResponsiveContainer width="100%" height={260}>
+            <AreaChart data={weekData}>
+              <defs>
+                <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(152 60% 42%)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="hsl(152 60% 42%)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "hsl(220 10% 55%)" }} />
+              <YAxis domain={[0, 100]} hide />
+              <Tooltip contentStyle={{ background: "hsl(220 15% 10%)", border: "1px solid hsl(220 15% 16%)", borderRadius: "8px", fontSize: 12, color: "hsl(220 10% 92%)" }} />
+              <Area type="monotone" dataKey="score" stroke="hsl(152 60% 42%)" fill="url(#scoreGrad)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </motion.div>
+      </div>
     </div>
   );
 }
