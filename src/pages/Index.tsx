@@ -1,4 +1,5 @@
 import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
+import { computeProductivityScore } from "@/lib/productivityScoring";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import {
