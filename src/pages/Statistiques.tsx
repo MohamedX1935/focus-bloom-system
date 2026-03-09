@@ -55,11 +55,8 @@ function computeDayGlobalScore(
 
   let prodScore = 0;
   if (prod) {
-    const tasksDone = prod.tasks.filter(t => t.done).length;
-    const tasksTotal = prod.tasks.length || 1;
-    const taskScore = (tasksDone / tasksTotal) * 60;
-    const deepScore = Math.min(40, (prod.deepWorkMinutes / 120) * 40);
-    prodScore = Math.round(taskScore + deepScore);
+    const { computeProductivityScore } = await import("@/lib/productivityScoring");
+    prodScore = computeProductivityScore(prod);
   }
 
   const monthKey = key.substring(0, 7);

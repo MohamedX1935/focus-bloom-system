@@ -230,7 +230,7 @@ export function useProductivity() {
   const upsertDay = useCallback(async (date: string, entry: ProductivityEntry) => {
     if (!user) return;
     await supabase.from("daily_productivity").upsert(
-      { user_id: user.id, date, tasks: entry.tasks as any, deep_work_minutes: entry.deepWorkMinutes, formation_minutes: entry.formationMinutes },
+      { user_id: user.id, date, tasks: [...entry.tasks, ...(entry.sessions || []).map(s => ({ ...s, _isSession: true }))] as any, deep_work_minutes: 0, formation_minutes: 0 },
       { onConflict: "user_id,date" }
     );
     queryClient.invalidateQueries({ queryKey });
