@@ -56,7 +56,6 @@ function computeDayGlobalScore(
 
   let prodScore = 0;
   if (prod) {
-    const { computeProductivityScore } = await import("@/lib/productivityScoring");
     prodScore = computeProductivityScore(prod);
   }
 
