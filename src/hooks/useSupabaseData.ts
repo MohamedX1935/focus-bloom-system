@@ -216,11 +216,15 @@ export function useProductivity() {
       if (error) throw error;
       const map: Record<string, ProductivityEntry> = {};
       for (const row of data || []) {
-        map[row.date] = {
-          date: row.date,
-          tasks: (row.tasks as any)?.length ? (row.tasks as unknown as any[]) : [],
-          sessions: (row as any).sessions || ((row as any).deep_work_minutes != null ? [] : []),
-        } as ProductivityEntry;
+        const raw = row.tasks as any;
+        // New format: { tasks: [...], sessions: [...] } stored in the tasks JSONB column
+        if (raw && !Array.isArray(raw) && raw.tasks) {
+          map[row.date] = { date: row.date, tasks: raw.tasks || [], sessions: raw.sessions || [] };
+        } else {
+          // Legacy format: tasks was a plain array, no sessions
+          const legacyTasks = Array.isArray(raw) ? raw : [];
+          map[row.date] = { date: row.date, tasks: legacyTasks.map((t: any) => ({ ...t, priority: t.priority || "moyenne" })), sessions: [] };
+        }
       }
       return map;
     },
@@ -229,8 +233,10 @@ export function useProductivity() {
 
   const upsertDay = useCallback(async (date: string, entry: ProductivityEntry) => {
     if (!user) return;
+    // Store as structured object in the tasks JSONB column
+    const payload = { tasks: entry.tasks, sessions: entry.sessions || [] };
     await supabase.from("daily_productivity").upsert(
-      { user_id: user.id, date, tasks: [...entry.tasks, ...(entry.sessions || []).map(s => ({ ...s, _isSession: true }))] as any, deep_work_minutes: 0, formation_minutes: 0 },
+      { user_id: user.id, date, tasks: payload as any, deep_work_minutes: 0, formation_minutes: 0 },
       { onConflict: "user_id,date" }
     );
     queryClient.invalidateQueries({ queryKey });
