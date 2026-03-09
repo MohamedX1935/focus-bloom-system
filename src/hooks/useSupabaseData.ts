@@ -218,10 +218,9 @@ export function useProductivity() {
       for (const row of data || []) {
         map[row.date] = {
           date: row.date,
-          tasks: row.tasks as unknown as Task[],
-          deepWorkMinutes: row.deep_work_minutes,
-          formationMinutes: row.formation_minutes,
-        };
+          tasks: (row.tasks as any)?.length ? (row.tasks as unknown as any[]) : [],
+          sessions: (row as any).sessions || ((row as any).deep_work_minutes != null ? [] : []),
+        } as ProductivityEntry;
       }
       return map;
     },
