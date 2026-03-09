@@ -71,6 +71,7 @@ export function AppSidebar() {
                       end={item.url === "/"}
                       className="hover:bg-accent/60 transition-colors"
                       activeClassName="bg-accent text-primary font-medium"
+                      onClick={handleNavClick}
                     >
                       <item.icon className="mr-2 h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
