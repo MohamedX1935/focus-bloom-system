@@ -60,18 +60,31 @@ export interface ScreenEntry {
   tempsDopamine: number;
 }
 
+export type TaskPriority = "basse" | "moyenne" | "haute";
+export type SessionType = "formation" | "academique" | "deep-work";
+
 export interface Task {
   id: string;
   title: string;
   done: boolean;
   date: string;
+  priority: TaskPriority;
+  sessionId?: string; // linked to a session
+}
+
+export interface ProductivitySession {
+  id: string;
+  date: string;
+  type: SessionType;
+  durationMinutes: number;
+  completed: boolean;
+  taskIds: string[]; // tasks assigned to this session
 }
 
 export interface ProductivityEntry {
   date: string;
   tasks: Task[];
-  deepWorkMinutes: number;
-  formationMinutes: number;
+  sessions: ProductivitySession[];
 }
 
 export interface Goal {
