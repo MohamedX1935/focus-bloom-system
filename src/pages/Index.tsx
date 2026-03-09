@@ -62,9 +62,7 @@ function computeScreenScore(entry: ScreenEntry | undefined, settings: AppSetting
   return Math.round(Math.max(0, Math.min(100, 50 + ratio * 50 + (timeScore - 50) * 0.5)));
 }
 
-function computeProductivityScoreDashboard(entry: ProductivityEntry | undefined): number {
-  return computeProductivityScore(entry);
-}
+// productivity score imported from lib
 
 function computeFinanceScore(expenses: Expense[], settings: AppSettings, monthKey: string): number {
   const totalSpent = expenses.filter(e => e.date.startsWith(monthKey)).reduce((s, e) => s + e.amount, 0);
