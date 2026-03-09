@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
 import { type DayHabits, type DayPrayers, type AppSettings, type SleepEntry, type ScreenEntry, type ProductivityEntry, type Expense, getLevel } from "@/types/app";
+import { computeProductivityScore } from "@/lib/productivityScoring";
 import { motion } from "framer-motion";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, AreaChart, Area } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
