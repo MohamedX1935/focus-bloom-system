@@ -1,4 +1,5 @@
 import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
+import { computeProductivityScore } from "@/lib/productivityScoring";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ModuleCard } from "@/components/ModuleCard";
 import {
@@ -61,14 +62,7 @@ function computeScreenScore(entry: ScreenEntry | undefined, settings: AppSetting
   return Math.round(Math.max(0, Math.min(100, 50 + ratio * 50 + (timeScore - 50) * 0.5)));
 }
 
-function computeProductivityScore(entry: ProductivityEntry | undefined): number {
-  if (!entry) return 0;
-  const tasksDone = entry.tasks.filter((t) => t.done).length;
-  const tasksTotal = entry.tasks.length || 1;
-  const taskScore = (tasksDone / tasksTotal) * 60;
-  const deepScore = Math.min(40, (entry.deepWorkMinutes / 120) * 40);
-  return Math.round(taskScore + deepScore);
-}
+// productivity score imported from lib
 
 function computeFinanceScore(expenses: Expense[], settings: AppSettings, monthKey: string): number {
   const totalSpent = expenses.filter(e => e.date.startsWith(monthKey)).reduce((s, e) => s + e.amount, 0);

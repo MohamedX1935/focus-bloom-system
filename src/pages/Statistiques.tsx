@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useHabits, usePrayers, useSleep, useScreen, useProductivity, useExpenses, useSettings } from "@/hooks/useSupabaseData";
 import { type DayHabits, type DayPrayers, type AppSettings, type SleepEntry, type ScreenEntry, type ProductivityEntry, type Expense, getLevel } from "@/types/app";
+import { computeProductivityScore } from "@/lib/productivityScoring";
 import { motion } from "framer-motion";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, AreaChart, Area } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
@@ -55,11 +56,7 @@ function computeDayGlobalScore(
 
   let prodScore = 0;
   if (prod) {
-    const tasksDone = prod.tasks.filter(t => t.done).length;
-    const tasksTotal = prod.tasks.length || 1;
-    const taskScore = (tasksDone / tasksTotal) * 60;
-    const deepScore = Math.min(40, (prod.deepWorkMinutes / 120) * 40);
-    prodScore = Math.round(taskScore + deepScore);
+    prodScore = computeProductivityScore(prod);
   }
 
   const monthKey = key.substring(0, 7);
