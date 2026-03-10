@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useProductivity } from "@/hooks/useSupabaseData";
 import {
   type ProductivityEntry,
@@ -7,19 +8,17 @@ import {
   type SessionType,
 } from "@/types/app";
 import { ScoreRing } from "@/components/ScoreRing";
+import { DateNavigator } from "@/components/DateNavigator";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import {
   Check, Plus, Trash2, Clock, BookOpen, GraduationCap, Brain,
   ChevronDown, ChevronUp, ListTodo, Timer,
 } from "lucide-react";
-import { useState } from "react";
 import { computeProductivityScore } from "@/lib/productivityScoring";
 
 function getTodayKey() {
@@ -39,7 +38,7 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
 };
 
 export default function Productivite() {
-  const today = getTodayKey();
+  const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const { productivityData, upsertDay } = useProductivity();
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState<TaskPriority>("moyenne");
@@ -47,15 +46,15 @@ export default function Productivite() {
   const [sessionDuration, setSessionDuration] = useState(60);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
 
-  const entry: ProductivityEntry = productivityData[today] || {
-    date: today,
+  const entry: ProductivityEntry = productivityData[selectedDate] || {
+    date: selectedDate,
     tasks: [],
     sessions: [],
   };
 
   const updateEntry = (partial: Partial<ProductivityEntry>) => {
     const updated = { ...entry, ...partial };
-    upsertDay(today, updated);
+    upsertDay(selectedDate, updated);
   };
 
   // ─── Tasks ───
@@ -65,7 +64,7 @@ export default function Productivite() {
       id: crypto.randomUUID(),
       title: newTask.trim(),
       done: false,
-      date: today,
+      date: selectedDate,
       priority: newPriority,
     };
     updateEntry({ tasks: [...entry.tasks, task] });
@@ -90,7 +89,7 @@ export default function Productivite() {
   const addSession = () => {
     const session: ProductivitySession = {
       id: crypto.randomUUID(),
-      date: today,
+      date: selectedDate,
       type: sessionType,
       durationMinutes: sessionDuration,
       completed: false,
@@ -106,7 +105,6 @@ export default function Productivite() {
   };
 
   const removeSession = (id: string) => {
-    // Unlink tasks from this session
     updateEntry({
       sessions: entry.sessions.filter((s) => s.id !== id),
       tasks: entry.tasks.map((t) => (t.sessionId === id ? { ...t, sessionId: undefined } : t)),
@@ -152,6 +150,8 @@ export default function Productivite() {
         <ScoreRing score={score} size={64} strokeWidth={5} />
       </div>
 
+      <DateNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
+
       <Tabs defaultValue="sessions" className="w-full">
         <TabsList className="w-full">
           <TabsTrigger value="sessions" className="flex-1 gap-1.5">
@@ -164,7 +164,6 @@ export default function Productivite() {
 
         {/* ═══ SESSIONS TAB ═══ */}
         <TabsContent value="sessions" className="space-y-4 mt-4">
-          {/* New session form */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-4 space-y-3">
             <h3 className="text-sm font-medium text-foreground">Nouvelle session</h3>
             <div className="grid grid-cols-2 gap-3">
@@ -198,9 +197,8 @@ export default function Productivite() {
             </Button>
           </motion.div>
 
-          {/* Sessions list */}
           {entry.sessions.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-6">Aucune session aujourd'hui</p>
+            <p className="text-sm text-muted-foreground text-center py-6">Aucune session ce jour</p>
           )}
           {entry.sessions.map((session, i) => {
             const st = SESSION_TYPES.find((s) => s.value === session.type);
@@ -266,7 +264,6 @@ export default function Productivite() {
                         </button>
                       </div>
                     ))}
-                    {/* Assign unassigned tasks */}
                     {unassignedTasks.length > 0 && (
                       <Select onValueChange={(taskId) => assignTaskToSession(taskId, session.id)}>
                         <SelectTrigger className="h-8 text-xs bg-background border-border mt-1">
@@ -313,7 +310,7 @@ export default function Productivite() {
 
           <div className="space-y-2">
             {entry.tasks.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-6">Aucune tâche aujourd'hui</p>
+              <p className="text-sm text-muted-foreground text-center py-6">Aucune tâche ce jour</p>
             )}
             {entry.tasks.map((task, i) => {
               const linkedSession = entry.sessions.find((s) => s.id === task.sessionId);

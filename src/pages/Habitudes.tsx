@@ -1,27 +1,27 @@
+import { useState } from "react";
 import { useHabits, useSettings } from "@/hooks/useSupabaseData";
 import { type DayHabits, type HabitEntry, type DayType, getDayType, getHabitsForDate } from "@/types/app";
 import { motion } from "framer-motion";
 import { Check, Briefcase, Coffee } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { DateNavigator } from "@/components/DateNavigator";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
 export default function Habitudes() {
-  const today = getTodayKey();
+  const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const { habitsData, upsertDay } = useHabits();
   const { settings, updateSettings } = useSettings();
 
-  const dayType = getDayType(today, settings);
-  const templateHabits = getHabitsForDate(today, settings);
+  const dayType = getDayType(selectedDate, settings);
+  const templateHabits = getHabitsForDate(selectedDate, settings);
 
-  // Merge saved data with template: keep done state for matching ids
-  const savedHabits = habitsData[today]?.habits || [];
+  const savedHabits = habitsData[selectedDate]?.habits || [];
   const savedMap = new Map(savedHabits.map((h) => [h.id, h]));
 
   const dayHabits: DayHabits = {
-    date: today,
+    date: selectedDate,
     habits: templateHabits.map((h) => ({
       ...h,
       done: savedMap.get(h.id)?.done ?? false,
@@ -30,14 +30,14 @@ export default function Habitudes() {
 
   const toggleHabit = (id: string) => {
     const updated = dayHabits.habits.map((h) => (h.id === id ? { ...h, done: !h.done } : h));
-    upsertDay(today, updated);
+    upsertDay(selectedDate, updated);
   };
 
   const toggleDayType = () => {
     const newType: DayType = dayType === "travail" ? "repos" : "travail";
     updateSettings({
       ...settings,
-      dayTypeOverrides: { ...settings.dayTypeOverrides, [today]: newType },
+      dayTypeOverrides: { ...settings.dayTypeOverrides, [selectedDate]: newType },
     });
   };
 
@@ -74,6 +74,8 @@ export default function Habitudes() {
           </div>
         </div>
       </div>
+
+      <DateNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
 
       <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
         <motion.div

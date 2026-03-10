@@ -1,25 +1,27 @@
+import { useState } from "react";
 import { usePrayers } from "@/hooks/useSupabaseData";
 import { PRAYER_NAMES, type DayPrayers } from "@/types/app";
 import { ScoreRing } from "@/components/ScoreRing";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
+import { DateNavigator } from "@/components/DateNavigator";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
 export default function Priere() {
-  const today = getTodayKey();
+  const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const { prayersData, upsertDay } = usePrayers();
 
-  const dayPrayers: DayPrayers = prayersData[today] || {
-    date: today,
+  const dayPrayers: DayPrayers = prayersData[selectedDate] || {
+    date: selectedDate,
     prayers: PRAYER_NAMES.map((name) => ({ name, done: false })),
   };
 
   const togglePrayer = (name: string) => {
     const updated = dayPrayers.prayers.map((p) => (p.name === name ? { ...p, done: !p.done } : p));
-    upsertDay(today, updated);
+    upsertDay(selectedDate, updated);
   };
 
   const doneCount = dayPrayers.prayers.filter((p) => p.done).length;
@@ -31,8 +33,9 @@ export default function Priere() {
         <h1 className="text-2xl font-bold text-foreground">Prière</h1>
         <p className="text-sm text-muted-foreground">{doneCount}/5 prières effectuées</p>
       </div>
+      <DateNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
       <div className="flex justify-center">
-        <ScoreRing score={score} size={120} label="Aujourd'hui" />
+        <ScoreRing score={score} size={120} label="Score" />
       </div>
       <div className="space-y-3">
         {dayPrayers.prayers.map((prayer, i) => (
