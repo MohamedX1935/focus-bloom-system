@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSleep, useSettings } from "@/hooks/useSupabaseData";
 import { type SleepEntry } from "@/types/app";
 import { ScoreRing } from "@/components/ScoreRing";
@@ -5,18 +6,19 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { DateNavigator } from "@/components/DateNavigator";
 
 function getTodayKey() {
   return new Date().toISOString().split("T")[0];
 }
 
 export default function Sommeil() {
-  const today = getTodayKey();
+  const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const { settings } = useSettings();
   const { sleepData, upsertDay } = useSleep();
 
-  const entry: SleepEntry = sleepData[today] || {
-    date: today,
+  const entry: SleepEntry = sleepData[selectedDate] || {
+    date: selectedDate,
     heureCoucher: "",
     heureReveil: "",
     reveilNocturne: false,
@@ -24,7 +26,7 @@ export default function Sommeil() {
 
   const update = (partial: Partial<SleepEntry>) => {
     const updated = { ...entry, ...partial };
-    upsertDay(today, updated);
+    upsertDay(selectedDate, updated);
   };
 
   let duration = 0;
@@ -52,6 +54,7 @@ export default function Sommeil() {
         <h1 className="text-2xl font-bold text-foreground">Sommeil</h1>
         <p className="text-sm text-muted-foreground">Objectif : {min}-{max}h</p>
       </div>
+      <DateNavigator selectedDate={selectedDate} onDateChange={setSelectedDate} />
       <div className="flex justify-center">
         <ScoreRing score={score} size={120} label={duration > 0 ? `${duration.toFixed(1)}h` : "—"} />
       </div>
